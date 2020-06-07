@@ -1,0 +1,156 @@
+version: '2'
+
+silent: true
+
+vars:
+  NAME: mmesh
+  ORG: mmesh
+  DOMAIN: mmesh.io
+  GITHUB_PKG: 'github.com/{{.ORG}}/{{.NAME}}'
+  PREFIX: {sh: pwd}
+  DIST_DIR: '{{.PREFIX}}/_dist'
+  VERSION: {sh: cat VERSION}
+  LOCAL_UID: {sh: id -u}
+  LOCAL_GID: {sh: id -g}
+  GS_BUCKET: 'gs://mmesh-io'
+
+env:
+  TASK: tf
+  PKG: '{{.ORG}}/{{.NAME}}'
+  VERSION: {sh: cat VERSION}
+  VERSION_DATE: {sh: date -u +%Y%m%d%H%M%S}
+  GO_VERSION: {sh: go version | cut -f 3 -d ' '}
+  GO111MODULE: on
+  CGO_ENABLED: 0
+
+tasks:
+  _build-all:
+    cmds:
+      - task: _build-controller
+      - task: _build-node
+      - task: _build-cli
+
+  _build-controller:
+    dir: '{{.PREFIX}}/modules/m-controller'
+    cmds:
+      - task _build-controller
+
+  _build-node:
+    dir: '{{.PREFIX}}/modules/m-node'
+    cmds:
+      - task _build-node
+
+  _build-cli:
+    dir: '{{.PREFIX}}/modules/m-cli'
+    cmds:
+      - task _build-cli
+
+  build-all:
+    desc: Build all binaries.
+    deps: [golang:golang-builder]
+    cmds:
+      - docker run --rm -v {{.PREFIX}}:/go/src/{{.NAME}} -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/{{.NAME}} --cap-add=IPC_LOCK --ulimit memlock=-1:-1 x6adev/golang-builder:latest _build-all
+
+  build-controller:
+    desc: Build the controller binary.
+    deps: [git:git-modules-update]
+    dir: '{{.PREFIX}}/modules/m-controller'
+    vars:
+      MOD: m-controller
+    cmds:
+      - docker run --rm -v $(pwd):/go/src/{{.MOD}} -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/{{.MOD}} --cap-add=IPC_LOCK --ulimit memlock=-1:-1 x6adev/golang-builder:latest _build-controller
+      - sudo chown -R {{.LOCAL_UID}}:{{.LOCAL_GID}} .
+
+  build-node:
+    desc: Build the node binary.
+    deps: [git-modules-update]
+    dir: '{{.PREFIX}}/modules/m-node'
+    vars:
+      MOD: m-node
+    cmds:
+      - docker run --rm -v $(pwd):/go/src/{{.MOD}} -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/{{.MOD}} --cap-add=IPC_LOCK --ulimit memlock=-1:-1 x6adev/golang-builder:latest _build-node
+      - sudo chown -R {{.LOCAL_UID}}:{{.LOCAL_GID}} .
+
+  build-cli:
+    desc: Build the cli binary.
+    deps: [git-modules-update]
+    dir: '{{.PREFIX}}/modules/m-cli'
+    vars:
+      MOD: m-cli
+    cmds:
+      - docker run --rm -v $(pwd):/go/src/{{.MOD}} -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/{{.MOD}} --cap-add=IPC_LOCK --ulimit memlock=-1:-1 x6adev/golang-builder:latest _build-cli
+      - sudo chown -R {{.LOCAL_UID}}:{{.LOCAL_GID}} .
+
+  clean:
+    desc: Clean dist working directory.
+    cmds:
+      - echo 'Cleaning dist working directory...'
+      - rm -rf {{.DIST_DIR}}
+
+  docker-generate-controller:
+    desc: docker build and push -- mmesh-controller
+    dir: '{{.PREFIX}}/modules/m-controller'
+    deps: [build-controller]
+    cmds:
+    - ${TASK} docker-generate-controller
+
+  docker-generate-node:
+    desc: docker build and push -- mmesh-node
+    dir: '{{.PREFIX}}/modules/m-node'
+    deps: [build-node]
+    cmds:
+    - ${TASK} docker-generate-node
+
+  docker-generate-cli:
+    desc: docker build and push -- mmesh-cli
+    dir: '{{.PREFIX}}/modules/m-cli'
+    deps: [build-cli]
+    cmds:
+    - ${TASK} docker-generate-cli
+
+  # release-binaries:
+  #   desc: Release binaries.
+  #   dir: '{{.PREFIX}}'
+  #   cmds:
+  #     - ./_local/build/release.sh '{{.VERSION}}' '{{.DIST_DIR}}' '{{.GS_BUCKET}}'
+
+  release-all:
+    desc: Release docker images and binaries.
+    cmds:
+      - task: docker-generate-controller
+      - task: docker-generate-node
+      - task: docker-generate-cli
+      #- task: release-binaries
+
+  # goreleaser:
+  #   desc: Build and release all the packages.
+  #   deps: [docker:docker-login]
+  #   cmds:
+  #     - task: golang:go-generate
+  #     - task: golang:golang:gofmt
+  #     - task: golang:go-verify-vendor
+  #     # - task: golang:go-vet
+  #     # - task: golang:golangci-lint
+  #     - goreleaser -f build/ci/goreleaser/release.yml --rm-dist
+
+  version-bump:
+    desc: Bump version.
+    dir: '{{.PREFIX}}'
+    cmds:
+      - echo 'Bumping VERSION from {{.VERSION}}...'
+      - ./scripts/build/version-bump.sh
+      - git add VERSION
+      - git commit -m "Bump version to $(cat VERSION)"
+
+  tag:
+    desc: Create a new git tag to build a release.
+    deps: [version-bump]
+    cmds:
+      - echo 'Executing git tag with {{.VERSION}}...'
+      - git tag -sa {{.VERSION}} -m "{{.VERSION}}"
+      - echo "Run git push origin {{.VERSION}} to push your new tag to GitHub."
+
+includes:
+  git: ./build/taskfiles/build/gitTasks.yml
+  golang: ./build/taskfiles/build/golangTasks.yml
+  docker: ./build/taskfiles/build/dockerTasks.yml
