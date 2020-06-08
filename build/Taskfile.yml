@@ -47,13 +47,14 @@ tasks:
 
   build-all:
     desc: Build all binaries.
-    deps: [golang:golang-builder]
     cmds:
-      - docker run --rm -v {{.PREFIX}}:/go/src/{{.NAME}} -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/{{.NAME}} --cap-add=IPC_LOCK --ulimit memlock=-1:-1 x6adev/golang-builder:latest _build-all
+      - task: build-controller
+      - task: build-node
+      - task: build-cli
 
   build-controller:
     desc: Build the controller binary.
-    deps: [git:git-modules-update]
+    deps: [git:git-modules-update, golang:golang-builder]
     dir: '{{.PREFIX}}/modules/m-controller'
     vars:
       MOD: m-controller
@@ -63,7 +64,7 @@ tasks:
 
   build-node:
     desc: Build the node binary.
-    deps: [git-modules-update]
+    deps: [git:git-modules-update, golang:golang-builder]
     dir: '{{.PREFIX}}/modules/m-node'
     vars:
       MOD: m-node
@@ -73,7 +74,7 @@ tasks:
 
   build-cli:
     desc: Build the cli binary.
-    deps: [git-modules-update]
+    deps: [git:git-modules-update, golang:golang-builder]
     dir: '{{.PREFIX}}/modules/m-cli'
     vars:
       MOD: m-cli
