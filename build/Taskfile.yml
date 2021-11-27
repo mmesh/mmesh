@@ -1,11 +1,11 @@
-version: '2'
+version: '3'
 
 silent: true
 
 vars:
   NAME: mmesh
   ORG: mmesh
-  DOMAIN: mmesh.io
+  DOMAIN: mmesh.dev
   GITHUB_PKG: 'github.com/{{.ORG}}/{{.NAME}}'
   PREFIX: {sh: pwd}
   DIST_DIR: '{{.PREFIX}}/_dist'
@@ -16,7 +16,7 @@ vars:
 
 env:
   TASK: tf
-  PKG: '{{.ORG}}/{{.NAME}}'
+  PKG: '{{.DOMAIN}}/{{.NAME}}'
   VERSION: {sh: cat VERSION}
   VERSION_DATE: {sh: date -u +%Y%m%d%H%M%S}
   GO_VERSION: {sh: go version | cut -f 3 -d ' '}
@@ -24,63 +24,44 @@ env:
   CGO_ENABLED: 0
 
 tasks:
-  _build-all:
+  build-manager:
+    desc: Build mmesh-manager
+    dir: '{{.PREFIX}}/modules/m-sys'
     cmds:
-      - task: _build-controller
-      - task: _build-node
-      - task: _build-cli
+      - ${TASK} build-manager
 
-  _build-controller:
-    dir: '{{.PREFIX}}/modules/m-controller'
+  build-controller:
+    desc: Build mmesh-controller
+    dir: '{{.PREFIX}}/modules/m-sys'
     cmds:
-      - task _build-controller
+      - ${TASK} build-controller
 
-  _build-node:
+  build-adm:
+    desc: Build mmesh-adm
+    dir: '{{.PREFIX}}/modules/m-sys'
+    cmds:
+      - ${TASK} build-adm
+
+  build-node:
+    desc: Build mmesh-node
     dir: '{{.PREFIX}}/modules/m-node'
     cmds:
-      - task _build-node
+      - ${TASK} build-node
 
-  _build-cli:
+  build-cli:
+    desc: Build mmesh-cli
     dir: '{{.PREFIX}}/modules/m-cli'
     cmds:
-      - task _build-cli
+      - ${TASK} build-cli
 
   build-all:
     desc: Build all binaries.
     cmds:
+      - task: build-manager
       - task: build-controller
+      - task: build-adm
       - task: build-node
       - task: build-cli
-
-  build-controller:
-    desc: Build the controller binary.
-    deps: [git:git-modules-update, golang:golang-builder]
-    dir: '{{.PREFIX}}/modules/m-controller'
-    vars:
-      MOD: m-controller
-    cmds:
-      - docker run --rm -v $(pwd):/go/src/{{.MOD}} -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/{{.MOD}} --cap-add=IPC_LOCK --ulimit memlock=-1:-1 x6adev/golang-builder:latest _build-controller
-      - sudo chown -R {{.LOCAL_UID}}:{{.LOCAL_GID}} .
-
-  build-node:
-    desc: Build the node binary.
-    deps: [git:git-modules-update, golang:golang-builder]
-    dir: '{{.PREFIX}}/modules/m-node'
-    vars:
-      MOD: m-node
-    cmds:
-      - docker run --rm -v $(pwd):/go/src/{{.MOD}} -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/{{.MOD}} --cap-add=IPC_LOCK --ulimit memlock=-1:-1 x6adev/golang-builder:latest _build-node
-      - sudo chown -R {{.LOCAL_UID}}:{{.LOCAL_GID}} .
-
-  build-cli:
-    desc: Build the cli binary.
-    deps: [git:git-modules-update, golang:golang-builder]
-    dir: '{{.PREFIX}}/modules/m-cli'
-    vars:
-      MOD: m-cli
-    cmds:
-      - docker run --rm -v $(pwd):/go/src/{{.MOD}} -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/{{.MOD}} --cap-add=IPC_LOCK --ulimit memlock=-1:-1 x6adev/golang-builder:latest _build-cli
-      - sudo chown -R {{.LOCAL_UID}}:{{.LOCAL_GID}} .
 
   clean:
     desc: Clean dist working directory.
@@ -88,68 +69,128 @@ tasks:
       - echo 'Cleaning dist working directory...'
       - rm -rf {{.DIST_DIR}}
 
-  docker-generate-controller:
-    desc: docker build and push -- mmesh-controller
-    dir: '{{.PREFIX}}/modules/m-controller'
-    deps: [build-controller]
-    cmds:
-    - ${TASK} docker-generate-controller
-
-  docker-generate-node:
-    desc: docker build and push -- mmesh-node
+  docker-push-node-dev:
+    desc: docker build and push -- mmesh-node (dev build)
     dir: '{{.PREFIX}}/modules/m-node'
     deps: [build-node]
     cmds:
-    - ${TASK} docker-generate-node
+      - ${TASK} docker-push-node-dev
 
-  docker-generate-cli:
-    desc: docker build and push -- mmesh-cli
+  docker-push-node-stable:
+    desc: docker build and push -- mmesh-node (stable build)
+    dir: '{{.PREFIX}}/modules/m-node'
+    deps: [build-node]
+    cmds:
+      - ${TASK} docker-push-node-stable
+
+  docker-push-cli-dev:
+    desc: docker build and push -- mmesh-cli (dev build)
     dir: '{{.PREFIX}}/modules/m-cli'
     deps: [build-cli]
     cmds:
-    - ${TASK} docker-generate-cli
+      - ${TASK} docker-push-cli-dev
 
-  # release-binaries:
-  #   desc: Release binaries.
-  #   dir: '{{.PREFIX}}'
-  #   cmds:
-  #     - ./_local/build/release.sh '{{.VERSION}}' '{{.DIST_DIR}}' '{{.GS_BUCKET}}'
-
-  release-all:
-    desc: Release docker images and binaries.
+  docker-push-cli-stable:
+    desc: docker build and push -- mmesh-cli (stable build)
+    dir: '{{.PREFIX}}/modules/m-cli'
+    deps: [build-cli]
     cmds:
-      - task: docker-generate-controller
-      - task: docker-generate-node
-      - task: docker-generate-cli
-      #- task: release-binaries
+      - ${TASK} docker-push-cli-stable
 
-  # goreleaser:
-  #   desc: Build and release all the packages.
-  #   deps: [docker:docker-login]
-  #   cmds:
-  #     - task: golang:go-generate
-  #     - task: golang:golang:gofmt
-  #     - task: golang:go-verify-vendor
-  #     # - task: golang:go-vet
-  #     # - task: golang:golangci-lint
-  #     - goreleaser -f build/ci/goreleaser/release.yml --rm-dist
-
-  version-bump:
-    desc: Bump version.
-    dir: '{{.PREFIX}}'
+  release-manager-dev:
+    desc: Release binaries -- mmesh-manager (dev build)
+    dir: '{{.PREFIX}}/modules/m-sys'
     cmds:
-      - echo 'Bumping VERSION from {{.VERSION}}...'
-      - ./scripts/build/version-bump.sh
-      - git add VERSION
-      - git commit -m "Bump version to $(cat VERSION)"
+      - ${TASK} release-manager-dev
 
-  tag:
-    desc: Create a new git tag to build a release.
-    deps: [version-bump]
+  release-manager-stable:
+    desc: Release binaries -- mmesh-manager (stable build)
+    dir: '{{.PREFIX}}/modules/m-sys'
     cmds:
-      - echo 'Executing git tag with {{.VERSION}}...'
-      - git tag -sa {{.VERSION}} -m "{{.VERSION}}"
-      - echo "Run git push origin {{.VERSION}} to push your new tag to GitHub."
+      - ${TASK} release-manager-stable
+
+  release-controller-dev:
+    desc: Release binaries -- mmesh-controller (dev build)
+    dir: '{{.PREFIX}}/modules/m-sys'
+    cmds:
+      - ${TASK} release-controller-dev
+
+  release-controller-stable:
+    desc: Release binaries -- mmesh-controller (stable build)
+    dir: '{{.PREFIX}}/modules/m-sys'
+    cmds:
+      - ${TASK} release-controller-stable
+
+  release-adm-dev:
+    desc: Release binaries -- mmesh-adm (dev build)
+    dir: '{{.PREFIX}}/modules/m-sys'
+    cmds:
+      - ${TASK} release-adm-dev
+
+  release-adm-stable:
+    desc: Release binaries -- mmesh-adm (stable build)
+    dir: '{{.PREFIX}}/modules/m-sys'
+    cmds:
+      - ${TASK} release-adm-stable
+
+  release-node-dev:
+    desc: Release binaries -- m-node (dev build)
+    dir: '{{.PREFIX}}/modules/m-node'
+    cmds:
+      - ${TASK} build-node
+      - ${TASK} release-all-dev
+
+  release-node-stable:
+    desc: Release binaries -- m-node (stable build)
+    dir: '{{.PREFIX}}/modules/m-node'
+    cmds:
+      - ${TASK} goreleaser
+      - ${TASK} release-all-stable
+
+  release-cli-dev:
+    desc: Release binaries -- m-cli (dev build)
+    dir: '{{.PREFIX}}/modules/m-cli'
+    cmds:
+      - ${TASK} build-cli
+      - ${TASK} release-all-dev
+
+  release-cli-stable:
+    desc: Release binaries -- m-cli (stable build)
+    dir: '{{.PREFIX}}/modules/m-cli'
+    cmds:
+      - ${TASK} goreleaser
+      - ${TASK} release-all-stable
+
+  release-all-dev:
+    desc: Release all docker images and binaries (dev build)
+    cmds:
+      - task: release-manager-dev
+      - task: release-controller-dev
+      - task: release-adm-dev
+      - task: release-node-dev
+      - task: release-cli-dev
+
+  release-all-stable:
+    desc: Release all docker images and binaries (stable build)
+    cmds:
+      - task: release-manager-stable
+      - task: release-controller-stable
+      - task: release-adm-stable
+      - task: release-node-stable
+      - task: release-cli-stable
+
+  update-module-m-lib:
+    desc: Update m-lib module
+    dir: '{{.PREFIX}}/modules/m-lib'
+    cmds:
+      - ${TASK} check-code
+      - ${TASK} git:update-git-repo
+
+  update-modules:
+    desc: Update module
+    dir: '{{.PREFIX}}/modules/m-lib'
+    cmds:
+      - task: update-module-m-lib
 
 includes:
   git: ./build/taskfiles/build/gitTasks.yml

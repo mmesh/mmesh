@@ -1,0 +1,22 @@
+apiVersion: skaffold/v2beta12
+kind: Config
+metadata:
+  name: mmesh
+build:
+  artifacts:
+  - image: eu.gcr.io/skynx-io/mmesh-controller
+    context: modules/m-sys/build/package/dockerfiles
+    docker:
+      dockerfile: dockerfile-controller
+  - image: eu.gcr.io/skynx-io/mmesh-manager
+    context: modules/m-sys/build/package/dockerfiles
+    docker:
+      dockerfile: dockerfile-manager
+  - image: x6adev/mmesh-node
+    context: modules/m-node/build/package/dockerfiles
+    docker:
+      dockerfile: dockerfile-node
+  - image: x6adev/mmesh-cli
+    context: modules/m-cli/build/package/dockerfiles
+    docker:
+      dockerfile: dockerfile-cli
