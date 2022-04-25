@@ -1,50 +1,8 @@
-![mmesh](https://github.com/mmesh/assets/blob/HEAD/images/logo/mmesh_logo_v4_240x40_darkgrey.png)
+# Security
 
-[![Discord](https://img.shields.io/discord/654291649572241408?color=%236d82cb&style=flat&logo=discord&logoColor=%23ffffff&label=Chat)](https://mmesh.io/discord)
-[![GitHub Discussions](https://img.shields.io/badge/GitHub_Discussions-181717?style=flat&logo=github&logoColor=white)](https://github.com/orgs/mmesh/discussions)
-[![Twitter](https://img.shields.io/badge/Follow_on_Twitter-1DA1F2?style=flat&logo=twitter&logoColor=white)](https://twitter.com/mmesh_io)
+Please report any security issue to [security@mmesh.dev](mailto:security@mmesh.dev) as soon as it is discovered.
 
-Open source projects from [mmesh](https://mmesh.io).
-
-- [mmesh-cli](https://github.com/mmesh/m-cli)
-- [mmesh-node](https://github.com/mmesh/m-node)
-
-## Overview
-
-mmesh is an all-in-one, hybrid cloud integration platform that allows you to work seamlessly with on-prem and multi-cloud infrastructure.
-
-It is an innovative network, automation, monitoring and management platform that lets you easily create your own virtual topology to integrate your on-prem and multi-cloud environments in minutes.
-
-Visit [mmesh.io](https://mmesh.io) to learn more.
-
-## Getting Started
-
-Ready to get started? Check out our [QuickStart](https://mmesh.io/docs/platform/getting-started/quickstart) for comprehensive instructions.
-
-## Documentation
-
-For the complete mmesh platform documentation visit [mmesh.io/docs](https://mmesh.io/docs).
-
-## Support & Feedback
-
-- For questions, support and general discussion, please use [GitHub Discussions](https://github.com/orgs/mmesh/discussions).
-- Feature requests or bug reports should be submitted to the issue tracker on the appropriate GitHub repository. If you are unsure which one you should use, you can ask on our [GitHub Discussions](https://github.com/orgs/mmesh/discussions)
-or just use the [mmesh OSS issue tracker](https://github.com/mmesh/mmesh/issues/).
-- Join us on [Discord](https://mmesh.io/discord).
-
-See [SUPPORT](/SUPPORT.md) for more details.
-
-## Contributing
-
-There are many ways to contribute, from writing tutorials or blog posts, improving the documentation, submitting bug reports and feature requests or writing code which can be incorporated into a mmesh OSS project.
-
-If you would like to join us, you are very welcome! See the [contributing guide](https://github.com/mmesh/.github/blob/HEAD/CONTRIBUTING.md) for detailed instructions on how to get started. If you have questions, don't hesitate to contact us.
-
-## Security Information
-
-Please, **NEVER report security-related issues, vulnerabilities or bugs including sensitive information to the GitHub issue tracker, or elsewhere in public**. Instead sensitive bugs must be sent by email to [security@mmesh.dev](mailto:security@mmesh.dev). We will coordinate the fix and disclosure.
-
-### PGP Public Key
+## PGP Public Key
 
 The following key may be used to communicate sensitive information:
 
@@ -114,23 +72,3 @@ pmgqgEXIYMqzKtrKfq1cQbtrz8p2juHko+41kUi/XbEZumIl8BTh9+cR7vc=
 =XMG3
 -----END PGP PUBLIC KEY BLOCK-----
 ```
-
-## Community
-
-Have questions, need support and or just want to talk?
-
-Get in touch with the mmesh community!
-
-[![Discord](https://img.shields.io/badge/Join_us_on_Discord-5865F2?style=flat&logo=discord&logoColor=white)](https://mmesh.io/discord)
-[![GitHub Discussions](https://img.shields.io/badge/GitHub_Discussions-181717?style=flat&logo=github&logoColor=white)](https://github.com/orgs/mmesh/discussions)
-[![Twitter](https://img.shields.io/badge/Follow_on_Twitter-1DA1F2?style=flat&logo=twitter&logoColor=white)](https://twitter.com/mmesh_io)
-
-## Code of Conduct
-
-Participation in the mmesh community is governed by the Contributor Covenant [Code of Conduct](https://github.com/mmesh/.github/blob/HEAD/CODE_OF_CONDUCT.md). Please make sure to read and observe this document.
-
-Please make sure to read and observe this document. By participating, you are expected to uphold this code.
-
-## License
-
-The mmesh open source projects are licensed under the [Apache 2.0 License](/LICENSE).
