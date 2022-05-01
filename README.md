@@ -1,4 +1,4 @@
-![mmesh](https://github.com/mmesh/assets/blob/HEAD/images/logo/mmesh_logo_v4_240x40_darkgrey.png)
+![mmesh](https://github.com/mmesh/assets/blob/HEAD/images/logo/mmesh_logo_v5_180x30.png)
 
 [![Discord](https://img.shields.io/discord/654291649572241408?color=%236d82cb&style=flat&logo=discord&logoColor=%23ffffff&label=Chat)](https://mmesh.io/discord)
 [![GitHub Discussions](https://img.shields.io/badge/GitHub_Discussions-181717?style=flat&logo=github&logoColor=white)](https://github.com/orgs/mmesh/discussions)
@@ -13,7 +13,7 @@ Open source projects from [mmesh](https://mmesh.io).
 
 mmesh is an all-in-one, hybrid cloud integration platform that allows you to work seamlessly with on-prem and multi-cloud infrastructure.
 
-It is an innovative network, automation, monitoring and management platform that lets you easily create your own virtual topology to integrate your on-prem and multi-cloud environments in minutes.
+An innovative network, automation, monitoring and management platform that lets you easily create your own virtual topology to integrate your on-prem and multi-cloud environments in minutes.
 
 Visit [mmesh.io](https://mmesh.io) to learn more.
 
